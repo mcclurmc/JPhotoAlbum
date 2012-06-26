@@ -99,9 +99,17 @@ public class JPhotoFrame extends JFrame
     protected File photoDirectory = null;
     
     protected static HashMap allFrames = new HashMap();
-    
+
     protected JPhotoFrame() throws Exception {
         // Do nothing... needed for inheritance !
+    }
+
+    public static JPhotoFrame test_init(JPhotoCollection photos) throws Exception {
+        JPhotoFrame frame = new JPhotoFrame();
+
+        frame.photos = photos;
+
+        return frame;
     }
 
     public JPhotoFrame(String frameName, JPhotoCollection photos) throws Exception {
@@ -546,7 +554,7 @@ public class JPhotoFrame extends JFrame
         else if (cmd.equals(JPhotoMenu.A_WATERMARK)) {
             String def = photos.getWatermark();
             if (def.equals(""))
-                def = "© "+Calendar.getInstance().get(Calendar.YEAR)+" ";
+                def = "ï¿½ "+Calendar.getInstance().get(Calendar.YEAR)+" ";
             String res = JOptionPane.showInputDialog(this, "Watermark",
                                                      def);
             if (res!=null)
@@ -580,14 +588,12 @@ public class JPhotoFrame extends JFrame
             showExif();
         }
         else if (cmd.equals(JPhotoMenu.A_SLIDESHOW)) {
-            if (photos.getSize()>0) {
-                JPhotoShow show = new JPhotoShow(photos, 5000, list);
-                show.setVisible(true);
-            }
-            else
-                JOptionPane.showMessageDialog(this, "No photos to show!",
-                                              APP_NAME, JOptionPane.ERROR_MESSAGE);
-                
+            performASlideshowAction( new MessageShower() {
+                public void ShowMessage(String message) {
+                    JOptionPane.showMessageDialog(JPhotoFrame.this, message,
+                            APP_NAME, JOptionPane.ERROR_MESSAGE);
+                }
+            });
         }
         else if (cmd.equals(JPhotoMenu.A_HELP)) {
             displayHelp();
@@ -596,7 +602,7 @@ public class JPhotoFrame extends JFrame
             JOptionPane.showMessageDialog(this, APP_NAME+" v1.4.5 - Organize and Publish Your Digital Photos.\n"+
                                           "Copyright 2005-2007 Jari Karjala [www.jpkware.com],\n"
                                           +"Tarja Hakala [www.hakalat.net]"
-                                          +" and Zbynek Mužík [zbynek.muzik@email.cz]\n"
+                                          +" and Zbynek Muï¿½ï¿½k [zbynek.muzik@email.cz]\n"
                                           +"This is free software, licenced under the GNU General Public License.",
                                           JPhotoMenu.A_ABOUT, JOptionPane.INFORMATION_MESSAGE);
         }
@@ -624,6 +630,22 @@ public class JPhotoFrame extends JFrame
             System.out.println("Not implemented: "+cmd);
         
         setTitle();
+    }
+
+    public interface MessageShower {
+        void ShowMessage(String message);
+    }
+
+    public JPhotoShow performASlideshowAction(MessageShower shower) {
+        if (photos.getSize()>0) {
+            JPhotoShow show = new JPhotoShow(photos, 5000, list);
+            show.setVisible(true);
+            return show;
+        }
+        else {
+            shower.ShowMessage("No photos to show!");
+            return null;
+        }
     }
 
     public void insertPhotos(String files[]) {
